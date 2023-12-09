@@ -1,3 +1,3 @@
 # Falcon
 
-A CLI application for instant messaging over XMPP with OTR
+A CLI XMPP client with OMEMO encryption
