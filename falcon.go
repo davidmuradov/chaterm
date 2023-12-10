@@ -1,11 +1,12 @@
 package main
 
-import( 
+import( "fmt"
 	"github.com/rivo/tview"
 )
 
 // Git test
 func main() {
+	fmt.Println("test")
 	newPrimitive := func(title string) tview.Primitive {
 		return tview.NewTextView().
 			SetTextAlign(tview.AlignCenter).
