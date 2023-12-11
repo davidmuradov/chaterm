@@ -25,14 +25,20 @@ func main() {
 
 	// Login Form
 	loginForm := tview.NewForm().
-	AddInputField("XMPP email adress", "rat@404.city", 25, nil, nil).
-	AddPasswordField("Password", "", 25, 0, nil).
+	AddInputField("XMPP email adress", "rat@404.city", 15, nil, nil).
+	AddPasswordField("Password", "", 15, 0, nil).
 	AddButton("Login", nil).
 	AddButton("Quit", func() {app.Stop()})
 
+	// Login Grid
+	loginGrid := tview.NewGrid().
+	SetSize(3,3,-3,-3).
+	AddItem(loginForm, 1, 1, 1, 1, 0, 0, true).
+	SetBorders(true)
+
 	// Main application's structure
 	rootPrimitive := tview.NewPages().
-	AddPage("loginPage", loginForm, true, true)
+	AddPage("loginPage", loginGrid, true, true)
 
 	// app needs to be of type tview.Primitive inside app.SetRoot()
 	// form item is a valid primitive
