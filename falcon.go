@@ -23,11 +23,20 @@ type Theme struct {
 func main() {
 	app := tview.NewApplication()
 
+	// Main Primitive to display
+	rootPrimitive := tview.NewPages()
+
 	// Login Form
+	/* When login button is pressed, we have choice between
+	switching to the already existing main page UI, or we
+	can also call AddAndSwitchToPage() to create the main
+	page UI on the spot and switch to it when the contact
+	informations are verified on the server
+	*/
 	loginForm := tview.NewForm().
-	AddInputField("XMPP email adress", "rat@404.city", 15, nil, nil).
+	AddInputField("XMPP email adress", "", 15, nil, nil).
 	AddPasswordField("Password", "", 15, 0, nil).
-	AddButton("Login", nil).
+	AddButton("Login", func() {rootPrimitive.SwitchToPage("mainPage")}).
 	AddButton("Quit", func() {app.Stop()})
 
 	// Login Grid
@@ -36,12 +45,31 @@ func main() {
 	AddItem(loginForm, 1, 1, 1, 1, 0, 0, true).
 	SetBorders(true)
 
-	// Main application's structure
-	rootPrimitive := tview.NewPages().
-	AddPage("loginPage", loginGrid, true, true)
+	/* Next objective is to setup Focus. Users will be able to
+	choose which windows to focus on, giving them a color hint as to 
+	which widget has focus and to use them 
+	*/
+
+	// Main Grid elements
+	contactsList := tview.NewBox().SetTitle("Contacts").SetBorder(true)
+	messageArea := tview.NewBox().SetTitle("Messages").SetBorder(true)
+	consoleDebug := tview.NewBox().SetTitle("Console").SetBorder(true)
+
+	// Main Grid
+	mainGrid := tview.NewGrid().
+	SetColumns(-1, -3).
+	SetRows(-9, -1).
+	AddItem(contactsList, 0, 0, 1, 1, 0, 0, true).
+	AddItem(messageArea, 0, 1, 1, 1, 0, 0, false).
+	AddItem(consoleDebug, 1, 0, 1, 2, 0, 0, false).
+	SetBorders(true)
+
+	// Add Pages
+	rootPrimitive.AddPage("loginPage", loginGrid, true, true).
+	AddPage("mainPage", mainGrid, true, false)
 
 	// app needs to be of type tview.Primitive inside app.SetRoot()
-	// form item is a valid primitive
+	// form item is a valid primitive (Pages is used in this case)
 	if err := app.SetRoot(rootPrimitive, true).SetFocus(rootPrimitive).Run(); err != nil {
 		panic(err)
 	}
