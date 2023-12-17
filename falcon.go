@@ -85,10 +85,6 @@ func main() {
 	SetBorders(true).
 	AddItem(consoleDebug, 0, 0, 1, 1, 0, 0, false)
 
-	/* Next objective is to setup Focus. Users will be able to
-	choose which windows to focus on, giving them a color hint as to 
-	which widget has focus and to use them 
-	*/
 	// Focus operations are hardcoded for now. Focus begins on the contactsList widget,
 	// and by pressing escape, we change focus to the TextArea widget to type messages,
 	// and pressing escape once again changes focus to the console. A final press on
@@ -135,7 +131,7 @@ func main() {
 	// app needs to be of type tview.Primitive inside app.SetRoot()
 	// form item is a valid primitive (Pages is used in this case)
 	if err := app.SetRoot(rootPrimitive, true).SetFocus(rootPrimitive).
-	EnableMouse(true).Run(); err != nil {
+	EnableMouse(false).Run(); err != nil {
 		panic(err)
 	}
 }
