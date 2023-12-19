@@ -20,6 +20,9 @@ type Theme struct {
 	ContrastSecondaryTextColor  tcell.Color // Secondary text on ContrastBackgroundColor-colored backgrounds.
 }
 
+const email string = "test@test.com"
+const password string = "test"
+
 func main() {
 	app := tview.NewApplication()
 	// Main Primitive to display
@@ -52,10 +55,32 @@ func main() {
 	*/
 
 	loginForm := tview.NewForm().
-	AddInputField("XMPP email adress", "", 15, nil, nil).
-	AddPasswordField("Password", "", 15, 0, nil).
-	AddButton("Login", func() {rootPrimitive.SwitchToPage("mainPage")
-	app.SetFocus(contactsList)}).
+	AddInputField("XMPP email adress", "", 0, nil, nil).
+	AddPasswordField("Password", "", 0, 0, nil)
+
+	loginForm.AddButton("Login", func() {
+		email_check_form := loginForm.GetFormItemByLabel("XMPP email adress").(*tview.InputField)
+		email_check := email_check_form.GetText()
+		pass_check_form := loginForm.GetFormItemByLabel("Password").(*tview.InputField)
+		pass_check := pass_check_form.GetText()
+
+		if email_check == email && pass_check == password {
+			rootPrimitive.SwitchToPage("mainPage")
+			app.SetFocus(contactsList)
+			return
+		}
+		
+		error_screen := tview.NewModal().
+		SetText("Error: wrong email or password").
+		AddButtons([]string{"OK"}).
+		SetDoneFunc(func(ButtonIndex int, ButtonLabel string) {
+			if ButtonLabel == "OK" {
+				rootPrimitive.SwitchToPage("loginPage")
+			}
+		})
+		rootPrimitive.AddAndSwitchToPage("errorPage", error_screen, true)
+		
+	}).
 	AddButton("Quit", func() {app.Stop()})
 
 	// Login Grid
@@ -127,6 +152,7 @@ func main() {
 	// Add Pages
 	rootPrimitive.AddPage("loginPage", loginGrid, true, true).
 	AddPage("mainPage", mainGrid, true, false)
+	//fmt.Println(email_valid)
 
 	// app needs to be of type tview.Primitive inside app.SetRoot()
 	// form item is a valid primitive (Pages is used in this case)
