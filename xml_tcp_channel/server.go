@@ -75,6 +75,8 @@ func manageConnection(c net.Conn) {
     limitReader := io.LimitReader(c, 1024*10)
     connReader := bufio.NewReaderSize(limitReader, 23)
     xmlDecoder := xml.NewDecoder(connReader)
+    toSend := []byte(`<message><to>bde</to><body>Hello, This is a message!</body></message>`)
+    c.Write(toSend)
     for {
         rawxml := BaseXMLMessage{}
         err := xmlDecoder.Decode(&rawxml)
