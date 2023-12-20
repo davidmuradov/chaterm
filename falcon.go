@@ -1,7 +1,8 @@
 package main
 
 import (
-	//"fmt"
+	"fmt"
+	"time"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -68,17 +69,17 @@ func main() {
 			rootPrimitive.SwitchToPage("mainPage")
 			app.SetFocus(contactsList)
 			return
-		}
-		
-		error_screen := tview.NewModal().
-		SetText("Error: wrong email or password").
-		AddButtons([]string{"OK"}).
-		SetDoneFunc(func(ButtonIndex int, ButtonLabel string) {
-			if ButtonLabel == "OK" {
-				rootPrimitive.SwitchToPage("loginPage")
-			}
-		})
+		} else {
+			error_screen := tview.NewModal().
+			SetText("Error: wrong email or password").
+			AddButtons([]string{"OK"}).
+			SetDoneFunc(func(ButtonIndex int, ButtonLabel string) {
+				if ButtonLabel == "OK" {
+					rootPrimitive.SwitchToPage("loginPage")
+				}
+			})
 		rootPrimitive.AddAndSwitchToPage("errorPage", error_screen, true)
+		}
 		
 	}).
 	AddButton("Quit", func() {app.Stop()})
@@ -93,7 +94,8 @@ func main() {
 	// Messaging area
 	receivedMessages := tview.NewTextView().
 	SetText("Here we receive messages from our contacts ...\n\nPressing <esc> will change the focus on another part of the app.\n\nPress <esc> to move between contacts, the message area and the console.").
-	SetTextColor(tcell.ColorYellow)
+	SetTextColor(tcell.ColorYellow).
+	SetScrollable(true)
 
 	sendingMessages := tview.NewTextArea().
 	SetLabel("> ")
@@ -114,8 +116,16 @@ func main() {
 	// and by pressing escape, we change focus to the TextArea widget to type messages,
 	// and pressing escape once again changes focus to the console. A final press on
 	// escape brings focus back to the contactsList widget
-	// Escape key should setfocus to the TextArea widget when into the contacts widget
+	// Escape key should setfocus to the TextView widget when into the contacts widget
 	contactsList.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	if event.Key() == tcell.KeyEscape {
+		app.SetFocus(receivedMessages)
+		return nil
+	}
+	return event
+	})
+	// Escape key should setfocus to the TextArea when into TextView widget
+	receivedMessages.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 	if event.Key() == tcell.KeyEscape {
 		app.SetFocus(sendingMessages)
 		return nil
@@ -126,6 +136,14 @@ func main() {
 	sendingMessages.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 	if event.Key() == tcell.KeyEscape {
 		app.SetFocus(consoleDebug)
+		return nil
+	} else if event.Key() == tcell.KeyEnter {
+		payload := sendingMessages.GetText()
+		//payload_length := sendingMessages.GetTextLength()
+		sendingMessages.SetText("", true)
+		fmt.Fprintf(receivedMessages, "\n\n%s: %s", email, payload)
+		receivedMessages.ScrollToEnd()
+		time.Sleep(30 * time.Millisecond)
 		return nil
 	}
 	return event
@@ -143,7 +161,7 @@ func main() {
 	mainGrid := tview.NewGrid().
 	SetColumns(-1, -3).
 	SetRows(-9, -1).
-	SetGap(2,2).
+	SetGap(1,1).
 	AddItem(contactsArea, 0, 0, 1, 1, 0, 0, true).
 	AddItem(messageArea, 0, 1, 1, 1, 0, 0, false).
 	AddItem(consoleArea, 1, 0, 1, 2, 0, 0, false).
@@ -154,8 +172,7 @@ func main() {
 	AddPage("mainPage", mainGrid, true, false)
 	//fmt.Println(email_valid)
 
-	// app needs to be of type tview.Primitive inside app.SetRoot()
-	// form item is a valid primitive (Pages is used in this case)
+	// Run app
 	if err := app.SetRoot(rootPrimitive, true).SetFocus(rootPrimitive).
 	EnableMouse(false).Run(); err != nil {
 		panic(err)
