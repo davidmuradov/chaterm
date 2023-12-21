@@ -1,36 +1,53 @@
 package main
-//
+
 import (
 	"fmt"
 	"time"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
-
+/*
 type Theme struct {
-	PrimitiveBackgroundColor    tcell.Color // Main background color for primitives.
-	ContrastBackgroundColor     tcell.Color // Background color for contrasting elements.
-	MoreContrastBackgroundColor tcell.Color // Background color for even more contrasting elements.
-	BorderColor                 tcell.Color // Box borders.
-	TitleColor                  tcell.Color // Box titles.
-	GraphicsColor               tcell.Color // Graphics.
-	PrimaryTextColor            tcell.Color // Primary text.
-	SecondaryTextColor          tcell.Color // Secondary text (e.g. labels).
+	//PrimitiveBackgroundColor    tcell.Color // Main background color for primitives.
+	//ContrastBackgroundColor     tcell.Color // Background color for contrasting elements.
+	//MoreContrastBackgroundColor tcell.Color // Background color for even more contrasting elements.
+	//BorderColor                 tcell.Color // Box borders.
+	//TitleColor                  tcell.Color // Box titles.
+	//GraphicsColor               tcell.Color // Graphics.
+	//PrimaryTextColor            tcell.Color // Primary text.
+	//SecondaryTextColor          tcell.Color // Secondary text (e.g. labels).
 	TertiaryTextColor           tcell.Color // Tertiary text (e.g. subtitles, notes).
 	InverseTextColor            tcell.Color // Text on primary-colored backgrounds.
 	ContrastSecondaryTextColor  tcell.Color // Secondary text on ContrastBackgroundColor-colored backgrounds.
 }
+*/
 
+// Login information
 const email string = "test@test.com"
 const password string = "test"
 
+// Default Style
+func loadDefaultStyle () {
+	tview.Styles.PrimitiveBackgroundColor = tcell.NewRGBColor(46, 52, 64)
+	tview.Styles.ContrastBackgroundColor = tcell.NewRGBColor(76, 86, 106)
+	tview.Styles.GraphicsColor = tcell.NewRGBColor(76, 86, 106)
+	tview.Styles.SecondaryTextColor = tcell.NewRGBColor(163, 190, 140)
+	tview.Styles.MoreContrastBackgroundColor = tcell.NewRGBColor(46, 52, 64)
+}
+
 func main() {
+
+	// Load the default style (Nord-ish)
+	loadDefaultStyle()
+
 	app := tview.NewApplication()
 	// Main Primitive to display
 	rootPrimitive := tview.NewPages()
 
 	// Contacts area
 	// Contacts infos
+	// ! Check for more efficient way of setting colors for nodes
+	tview.Styles.PrimaryTextColor = tcell.NewRGBColor(163, 190, 140)
 	contacts1 := tview.NewTreeNode("2050@404.city")
 	contacts2 := tview.NewTreeNode("2060@404.city")
 	contacts3 := tview.NewTreeNode("2077@404.city")
@@ -38,6 +55,7 @@ func main() {
 	AddChild(contacts1).
 	AddChild(contacts2).
 	AddChild(contacts3)
+	tview.Styles.PrimaryTextColor = tcell.ColorWhite
 
 	// The actual contacts list
 	contactsList := tview.NewTreeView().SetRoot(contactsNode).
@@ -94,8 +112,8 @@ func main() {
 	// Messaging area
 	receivedMessages := tview.NewTextView().
 	SetText("Here we receive messages from our contacts ...\n\nPressing <esc> will change the focus on another part of the app.\n\nPress <esc> to move between contacts, the message area and the console.").
-	SetTextColor(tcell.ColorYellow).
-	SetScrollable(true)
+	SetScrollable(true).
+	SetDynamicColors(true)
 
 	sendingMessages := tview.NewTextArea().
 	SetLabel("> ")
