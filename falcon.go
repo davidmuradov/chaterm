@@ -144,7 +144,7 @@ func main() {
 		payload := sendingMessages.GetText()
 		//payload_length := sendingMessages.GetTextLength()
 		sendingMessages.SetText("", true)
-		fmt.Fprintf(receivedMessages, "\n\n%s: %s", email, payload)
+		fmt.Fprintf(receivedMessages, "\n\n[#5e81ac]%s:[-] %s", email, payload)
 		receivedMessages.ScrollToEnd()
 		time.Sleep(30 * time.Millisecond)
 		return nil
