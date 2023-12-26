@@ -3,13 +3,17 @@ package main
 import (
 	"fmt"
 	"time"
+
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
 // Login information
-const email string = "test@test.com"
+const email string = "test"
 const password string = "test"
+
+// Global variables
+//var is_contacts_collapsed bool = false
 
 // Default Style
 func loadDefaultStyle () {
@@ -45,6 +49,11 @@ func main() {
 	// The actual contacts list
 	contactsList := tview.NewTreeView().SetRoot(contactsNode).
 	SetCurrentNode(contactsNode)
+	contactsList.SetSelectedFunc(func(node *tview.TreeNode) {
+		if len(node.GetChildren()) != 0 {
+			node.SetExpanded(!node.IsExpanded())
+		}
+	})
 
 	contactsArea := tview.NewGrid().
 	SetBorders(true).
@@ -81,6 +90,7 @@ func main() {
 					rootPrimitive.SwitchToPage("loginPage")
 				}
 			})
+		error_screen.SetBorder(false)
 		rootPrimitive.AddAndSwitchToPage("errorPage", error_screen, true)
 		}
 		
