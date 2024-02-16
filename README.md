@@ -8,10 +8,6 @@ To login in the main page:
 - Email: test
 - Password: test
 
-### Video Logs
-
-Check out the video logs documenting the progress : https://www.youtube.com/@DavidMuradov1999/featured
-
 ### xmlcoms moved
 
 The xmlcoms directory has been moved to:
