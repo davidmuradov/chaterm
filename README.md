@@ -25,3 +25,7 @@ This library is, of course, a work in progress.
 The default colors used are the ones from the "Nord" color palette.
 Eventually, there will be options to change the colors from within
 Falcon.
+
+To get 24bit colors (directcolor aka truecolor) in the terminal, users should
+set the COLORTERM environment variable to "truecolor" or "24-bit" or "24bit"
+according to the tcell documentation.
