@@ -2,24 +2,53 @@ package main
 
 import (
     "fmt"
-    "time"
 
     "github.com/gdamore/tcell/v2"
     "github.com/rivo/tview"
 )
 
-// Default Style
+const (
+
+    // POLAR NIGHT
+    NORD0 = 0x2e3440 // dark
+    NORD1 = 0x3b4252 // brighter dark
+    NORD2 = 0x434c5e // brigther brighter dark
+    NORD3 = 0x4c566a // birghtest dark
+
+    // SNOW STORM
+    NORD4 = 0xd8dee9 // white
+    NORD5 = 0xe5e9f0 // brighter white
+    NORD6 = 0xeceff4 // brightest white
+
+    // FROST
+    NORD7 = 0x8fbcbb // turquoise
+    NORD8 = 0x88c0d0 // lightblue
+    NORD9 = 0x81a1c1 // semi darkblue
+    NORD10 = 0x5e81ac // darkblue
+
+    // AURORA
+    NORD11 = 0xbf616a // red
+    NORD12 = 0xd08770 // orange
+    NORD13 = 0xebcb8b // yellow
+    NORD14 = 0xa3be8c // green
+    NORD15 = 0xb48ead // purple
+)
+
+func ternary_not_equal_int(val, comp, ifTrue, ifFalse int) int {
+
+    if(val != comp) {return ifTrue} else {return ifFalse}
+}
+
 func loadDefaultStyle() {
 
     tview.Styles.PrimitiveBackgroundColor = tcell.ColorNone
-    tview.Styles.ContrastBackgroundColor = tcell.NewHexColor(0x4c566a)
-    tview.Styles.GraphicsColor = tcell.NewHexColor(0x4c566a)
-    tview.Styles.PrimaryTextColor = tcell.NewHexColor(0xffffff)
-    tview.Styles.SecondaryTextColor = tcell.NewHexColor(0xa3be8c)
-    tview.Styles.MoreContrastBackgroundColor = tcell.NewHexColor(0xffffff)
+    tview.Styles.ContrastBackgroundColor = tcell.NewHexColor(NORD3)
+    tview.Styles.GraphicsColor = tcell.NewHexColor(NORD3)
+    tview.Styles.PrimaryTextColor = tcell.NewHexColor(NORD6)
+    tview.Styles.SecondaryTextColor = tcell.NewHexColor(NORD14)
+    tview.Styles.MoreContrastBackgroundColor = tcell.NewHexColor(NORD6)
 }
 
-// Perhaps useless function
 func allocateNewTreeNode(contactName string) *tview.TreeNode {
 
     return tview.NewTreeNode(contactName)
@@ -36,7 +65,7 @@ func toggleContactsList(node *tview.TreeNode) {
 
 func generateContactsArea(contactsList *tview.TreeView) *tview.Grid {
   
-    return tview.NewGrid().SetBorders(true).
+    return tview.NewGrid().SetBorders(false).
     AddItem(contactsList, 0, 0, 1, 1, 0, 0, false)
 }
 
@@ -56,8 +85,8 @@ func generateReceivedMessagesArea(s string) *tview.TextView {
 func generateMessageArea(rma *tview.TextView, sm *tview.TextArea) *tview.Grid {
 
     return tview.NewGrid().
-    SetBorders(true).
-    SetRows(-45,-1).
+    SetBorders(false).
+    SetRows(-43,-3).
     AddItem(rma, 0, 0, 1, 1, 0, 0, false).
     AddItem(sm, 1, 0, 1, 1, 0, 0, false)
 }
@@ -66,7 +95,7 @@ func generateMainGrid(ca, ma, clia *tview.Grid) *tview.Grid {
 
     return tview.NewGrid().
     SetColumns(-1, -3).
-    SetRows(-9, -1).
+    SetRows(-13, -1).
     SetGap(1,1).
     AddItem(ca, 0, 0, 1, 1, 0, 0, true).
     AddItem(ma, 0, 1, 1, 1, 0, 0, false).
@@ -76,7 +105,6 @@ func generateMainGrid(ca, ma, clia *tview.Grid) *tview.Grid {
 
 func main() {
 
-    // App widgets
     var app *tview.Application
     var rootPrimitive *tview.Pages
     var contactsNode, contacts1, contacts2, contacts3 *tview.TreeNode
@@ -88,36 +116,33 @@ func main() {
     var sendingMessages *tview.TextArea
     var messageArea *tview.Grid
     var mainGrid *tview.Grid
+    var consoleDebug *tview.TextArea
 
-    const RECEIVED_MESSAGES_TEXT = `Here we receive messages from our contacts ...
+    const RECEIVED_MESSAGES_TEXT = `Here we receive messages from our contacts.
 
-Pressing <esc> will change the focus on another part of the app.
+Use ^j and ^k to cycle through the UI elements.`
 
-Press <esc> to move between contacts, the message area and the console.`
-
-    // Login information
-    const EMAIL string = "test@test.com"
+    const EMAIL string = "test"
     const PASSWORD string = "test"
 
     loadDefaultStyle()
 
-    // Main Primitive to display
     app = tview.NewApplication()
     rootPrimitive = tview.NewPages()
 
-    // Contacts infos
     // ! Check for more efficient way of setting colors for nodes
-    tview.Styles.PrimaryTextColor = tcell.NewRGBColor(163, 190, 140)
+    tview.Styles.PrimaryTextColor = tcell.NewHexColor(NORD14)
     contacts1 = allocateNewTreeNode("2050@404.city")
     contacts2 = allocateNewTreeNode("2060@404.city")
     contacts3 = allocateNewTreeNode("2077@404.city")
     contactsNode = allocateNewTreeNode("Contacts").
     AddChild(contacts1).AddChild(contacts2).AddChild(contacts3)
-    tview.Styles.PrimaryTextColor = tcell.NewHexColor(0xffffff)
+    tview.Styles.PrimaryTextColor = tcell.NewHexColor(NORD6)
 
     contactsList = tview.NewTreeView().SetRoot(contactsNode).
     SetCurrentNode(contactsNode)
     contactsList.SetSelectedFunc(toggleContactsList) // UGLY, arg is a FUNCTION
+    contactsList.SetBorder(true).SetBorderColor(tcell.NewHexColor(NORD3))
 
     contactsArea = generateContactsArea(contactsList)
 
@@ -164,70 +189,57 @@ Press <esc> to move between contacts, the message area and the console.`
     loginGrid = generateLoginGrid(loginForm)
 
     receivedMessagesArea = generateReceivedMessagesArea(RECEIVED_MESSAGES_TEXT)
+    receivedMessagesArea.SetBorder(true)
+    receivedMessagesArea.SetBorderColor(tcell.NewHexColor(NORD3))
 
-    sendingMessages = tview.NewTextArea().SetLabel("> ")
+    sendingMessages = tview.NewTextArea().SetLabel("> ").
+    SetPlaceholder("Message wtv@404.city")
+    sendingMessages.SetBorder(true)
+    sendingMessages.SetBorderColor(tcell.NewHexColor(NORD3))
 
     messageArea = generateMessageArea(receivedMessagesArea, sendingMessages)
 
-    // The useless console box
-    consoleDebug := tview.NewTextArea().SetLabel("Console > ")
+    consoleDebug = tview.NewTextArea().SetLabel("Console > ").SetWrap(false)
+    consoleDebug.SetBorder(true).SetBorderColor(tcell.NewHexColor(NORD3))
     consoleArea := tview.NewGrid().
-    SetBorders(true).
+    SetBorders(false).
     AddItem(consoleDebug, 0, 0, 1, 1, 0, 0, false)
 
-    // Focus operations are hardcoded for now. Focus begins on the contactsList widget,
-    // and by pressing escape, we change focus to the TextArea widget to type messages,
-    // and pressing escape once again changes focus to the console. A final press on
-    // escape brings focus back to the contactsList widget
-    // Escape key should setfocus to the TextView widget when into the contacts widget
-    contactsList.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-	if event.Key() == tcell.KeyEscape {
-	    app.SetFocus(receivedMessagesArea)
-	    return nil
+    uiElements := [4]*tview.Box{contactsList.Box,
+    receivedMessagesArea.Box, sendingMessages.Box, consoleDebug.Box}
+    var idx int = 0
+
+    app.SetFocus(uiElements[idx])
+    app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+
+	switch(event.Key()) {
+
+	case tcell.KeyCtrlJ:
+	    idx += ternary_not_equal_int(idx, 3, 1, -3)
+	    app.SetFocus(uiElements[idx])
+	case tcell.KeyCtrlK:
+	    idx += ternary_not_equal_int(idx, 0, -1, 3)
+	    app.SetFocus(uiElements[idx])
 	}
 	return event
     })
-    // Escape key should setfocus to the TextArea when into TextView widget
-    receivedMessagesArea.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-	if event.Key() == tcell.KeyEscape {
-	    app.SetFocus(sendingMessages)
-	    return nil
-	}
-	return event
-    })
-    // Escape key should setfocus to the ConsoleBox when into the sendingMessages widget
+
     sendingMessages.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-	if event.Key() == tcell.KeyEscape {
-	    app.SetFocus(consoleDebug)
-	    return nil
-	} else if event.Key() == tcell.KeyEnter {
+	if event.Key() == tcell.KeyEnter {
 	    payload := sendingMessages.GetText()
-	    //payload_length := sendingMessages.GetTextLength()
 	    sendingMessages.SetText("", true)
 	    fmt.Fprintf(receivedMessagesArea, "\n\n[#5e81ac]%s:[-] %s", EMAIL, payload)
 	    receivedMessagesArea.ScrollToEnd()
-	    time.Sleep(30 * time.Millisecond)
-	    return nil
-	}
-	return event
-    })
-    // Escape key should setfocus to the contactsList when into the console widget
-    consoleDebug.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-	if event.Key() == tcell.KeyEscape {
-	    app.SetFocus(contactsList)
 	    return nil
 	}
 	return event
     })
 
-    // Main Grid
     mainGrid = generateMainGrid(contactsArea, messageArea, consoleArea)
 
-    // Add Pages
     rootPrimitive.AddPage("loginPage", loginGrid, true, true).
     AddPage("mainPage", mainGrid, true, false)
 
-    // Run app
     if err := app.SetRoot(rootPrimitive, true).SetFocus(rootPrimitive).
     EnableMouse(false).Run(); err != nil {
 	panic(err)
