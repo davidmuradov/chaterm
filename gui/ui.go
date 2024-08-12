@@ -12,13 +12,29 @@ type ScreenSize struct {
     height int
 }
 
-const (
-    RECEIVED_MESSAGES_TEXT string = `Connected.
+type SendTextAreaParams struct {
+    width int
+    maxWantedLines int // Max number of lines that displays for sending messages
+    maxHeight int
+    txtlen int
+    ratio int
+}
 
-Use ^n and ^p to cycle through the UI elements.`
-    EMAIL string = "test"
-    PASSWORD string = "test"
+const (
+    RECEIVED_MESSAGES_TEXT string = `Connected. Use ^n and ^p to cycle through UI elements.`
+
+    EMAIL string = "client"
+    PASSWORD string = "client"
+
+    EMAIL2 string = "server"
+    PASSWORD2 string = "server"
+
+    BASE_HEIGHT int = 3
 )
+
+func NewSendTextAreaParams(mwl int) *SendTextAreaParams {
+    return &SendTextAreaParams{0, mwl, mwl + BASE_HEIGHT, 0, 0}
+}
 
 // loadDefaultStyle loads default colors to use for the application. This might
 // change later as it would need to support different colorschemes. We also want
@@ -85,6 +101,7 @@ func generateLogin(app *tview.Application, rp *tview.Pages, cl *tview.TreeView) 
 	    SetDoneFunc(func(ButtonIndex int, ButtonLabel string) {
 		if ButtonLabel == "OK" {
 		    rp.SwitchToPage("loginPage")
+		    app.Sync()
 		}
 	    })
 	    error_screen.SetBorder(false)
@@ -161,6 +178,8 @@ func BuildApp() (a *tview.Application, rp *tview.Pages) {
     var console *tview.TextArea
     var consoleGrid *tview.Grid
 
+    scrSize := &ScreenSize{0, 0}
+
     loadDefaultStyle()
 
     app = tview.NewApplication()
@@ -178,35 +197,21 @@ func BuildApp() (a *tview.Application, rp *tview.Pages) {
     receivedMessagesArea.Box, sendMessages.Box, console.Box}
     var idx int = 0
 
-
-    // Size of inner rectangle for sendMessages
-    var wdt int = 0 // find a way to calculate this in realtime
-    const BASE_HEIGHT int = 3
-    const MAX_WANTED_LINES = 4 // Max number of lines that displays for sending messages
-    const MAX_HEIGHT = BASE_HEIGHT + MAX_WANTED_LINES
-    var txtLen int = 0
-    var ratio int = 0
+    taParams := NewSendTextAreaParams(4) // 4 wanted max lines
 
     sendMessages.SetChangedFunc(func() {
-	txtLen = sendMessages.GetTextLength()
+	taParams.txtlen = sendMessages.GetTextLength()
 
-	if ratio != txtLen / wdt {
-	    ratio = txtLen / wdt
+	if taParams.ratio != taParams.txtlen / taParams.width {
+	    taParams.ratio = taParams.txtlen / taParams.width
 
-	    if ratio + BASE_HEIGHT < MAX_HEIGHT {
-		messageGrid.SetRows(0, BASE_HEIGHT + ratio)
+	    if taParams.ratio + BASE_HEIGHT < taParams.maxHeight {
+		messageGrid.SetRows(0, BASE_HEIGHT + taParams.ratio)
 	    }
 	}
     })
 
     sendMessages.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-	// trash listener ngl but it will do for now
-	if wdt == 0 {
-	    _,_,wdt,_ = sendMessages.GetRect()
-	    wdt -= 4
-	    return nil
-	}
-
 	if event.Key() == tcell.KeyEnter {
 	    payload := sendMessages.GetText()
 	    sendMessages.SetText("", true)
@@ -255,16 +260,13 @@ func BuildApp() (a *tview.Application, rp *tview.Pages) {
     rootPrimitive.AddPage("loginPage", loginGrid, true, true).
     AddPage("mainPage", mainGrid, true, false)
 
-    // This kind of works, needs some fixing and some code refactor
-    test := &ScreenSize{0, 0}
-
     app.SetAfterDrawFunc(func(screen tcell.Screen) {
 	newx, newy := screen.Size()
-	if test.width != newx {
-	    test.width = newx
-	    test.height = newy
-	    _,_,wdt,_ = sendMessages.Box.GetRect()
-	    wdt -= 4
+	if scrSize.width != newx || scrSize.width != newy {
+	    scrSize.width = newx
+	    scrSize.height = newy
+	    _,_,taParams.width,_ = sendMessages.Box.GetRect()
+	    taParams.width -= 4
 	}
     })
 

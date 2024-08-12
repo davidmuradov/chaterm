@@ -4,9 +4,13 @@ A CLI XMPP client with OMEMO encryption written in GO
 
 ## Contacts Info
 
-To login in the main page:
-- Email: test
-- Password: test
+To login in the main page as a client :
+- Email: client
+- Password: client
+
+To login in the main page as the server :
+- Email: server
+- Password: server
 
 ### xmlcoms moved
 
@@ -18,7 +22,7 @@ https://github.com/Vacheprime/xmlcoms
 The omemo library is in:
 https://github.com/davidmuradov/omemo
 
-This library is, of course, a work in progress.
+This library is a work in progress
 
 ### Default colors
 
@@ -31,7 +35,12 @@ set the COLORTERM environment variable to "truecolor" or "24-bit" or "24bit"
 according to the tcell documentation.
 
 ### Next Features
+
 - Create max sending messages box height so that the sending messages box
 does not take over the box where messages are received (TESTING)
 
-- Calculate max sending messages width on screen resizes
+- Calculate max sending messages width on screen resizes (TESTING)
+
+- Fix bug where initial sending messages width does not calculate properly (TESTING)
+
+- Implement xmlcoms to locally send messages (IN PROGRESS)
