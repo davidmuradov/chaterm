@@ -1,7 +1,6 @@
-package main
+package gui
 
 const (
-
     // POLAR NIGHT
     NORD0 = 0x2e3440 // dark
     NORD1 = 0x3b4252 // brighter dark

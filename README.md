@@ -29,3 +29,9 @@ Falcon.
 To get 24bit colors (directcolor aka truecolor) in the terminal, users should
 set the COLORTERM environment variable to "truecolor" or "24-bit" or "24bit"
 according to the tcell documentation.
+
+### Next Features
+- Create max sending messages box height so that the sending messages box
+does not take over the box where messages are received (TESTING)
+
+- Calculate max sending messages width on screen resizes

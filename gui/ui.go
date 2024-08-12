@@ -1,24 +1,28 @@
 package gui
 
 import (
-    "fmt"
-    "github.com/gdamore/tcell/v2"
-    "github.com/rivo/tview"
+	"fmt"
+
+	"github.com/gdamore/tcell/v2"
+	"github.com/rivo/tview"
 )
+
+type ScreenSize struct {
+    width int
+    height int
+}
 
 const (
     RECEIVED_MESSAGES_TEXT string = `Connected.
 
-Use ^j and ^k to cycle through the UI elements.`
+Use ^n and ^p to cycle through the UI elements.`
     EMAIL string = "test"
     PASSWORD string = "test"
 )
 
-func ternary_not_equal_int(val, comp, ifTrue, ifFalse int) int {
-    if(val != comp) {return ifTrue}
-    return ifFalse
-}
-
+// loadDefaultStyle loads default colors to use for the application. This might
+// change later as it would need to support different colorschemes. We also want
+// to be able to dynamically change the colors from within the application.
 func loadDefaultStyle() {
     tview.Styles.PrimitiveBackgroundColor = tcell.ColorNone
     tview.Styles.ContrastBackgroundColor = tcell.NewHexColor(NORD3)
@@ -29,7 +33,7 @@ func loadDefaultStyle() {
     tview.Styles.MoreContrastBackgroundColor = tcell.NewHexColor(NORD6)
 }
 
-// anonymous function to toggle the contacts list
+// anonymous function to toggle the contacts list when pressing the ENTER key
 func toggleContactsList(node *tview.TreeNode) {
     if len(node.GetChildren()) != 0 {
 	node.SetExpanded(!node.IsExpanded())
@@ -86,7 +90,6 @@ func generateLogin(app *tview.Application, rp *tview.Pages, cl *tview.TreeView) 
 	    error_screen.SetBorder(false)
 	    rp.AddAndSwitchToPage("errorPage", error_screen, true)
 	}
-
     }).
     AddButton("Quit", func() {app.Stop()})
 
@@ -108,12 +111,14 @@ func generateMessageArea() (g *tview.Grid, tv *tview.TextView, ta *tview.TextAre
 
     sendMessages := tview.NewTextArea().SetLabel("> ").
     SetPlaceholder("Message wtv@404.city").
-    SetPlaceholderStyle(plchStyle)
+    SetPlaceholderStyle(plchStyle).SetWordWrap(true).
+    SetWrap(true)
     sendMessages.SetBorder(true)
+
 
     return tview.NewGrid().
     SetBorders(false).
-    SetRows(-43,-3).
+    SetRows(0, 3).
     AddItem(receivedMessagesArea, 0, 0, 1, 1, 0, 0, false).
     AddItem(sendMessages, 1, 0, 1, 1, 0, 0, false), receivedMessagesArea,
     sendMessages
@@ -127,14 +132,15 @@ func generateConsole() (g *tview.Grid, ta *tview.TextArea) {
     SetBorders(false).
     AddItem(console, 0, 0, 1, 1, 0, 0, false)
 
+
     return consoleGrid, console
 }
 
 func generateMainGrid(ca, ma, clia *tview.Grid) *tview.Grid {
     return tview.NewGrid().
     SetColumns(-1, -3).
-    SetRows(-13, -1).
-    SetGap(1,1).
+    SetRows(0, 3).
+    SetGap(0,0).
     AddItem(ca, 0, 0, 1, 1, 0, 0, true).
     AddItem(ma, 0, 1, 1, 1, 0, 0, false).
     AddItem(clia, 1, 0, 1, 2, 0, 0, false).
@@ -172,24 +178,35 @@ func BuildApp() (a *tview.Application, rp *tview.Pages) {
     receivedMessagesArea.Box, sendMessages.Box, console.Box}
     var idx int = 0
 
-    app.SetFocus(uiElements[idx])
-    app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 
-	switch(event.Key()) {
+    // Size of inner rectangle for sendMessages
+    var wdt int = 0 // find a way to calculate this in realtime
+    const BASE_HEIGHT int = 3
+    const MAX_WANTED_LINES = 4 // Max number of lines that displays for sending messages
+    const MAX_HEIGHT = BASE_HEIGHT + MAX_WANTED_LINES
+    var txtLen int = 0
+    var ratio int = 0
 
-	case tcell.KeyCtrlJ:
-	    idx += ternary_not_equal_int(idx, 3, 1, -3)
-	    app.SetFocus(uiElements[idx])
-	case tcell.KeyCtrlK:
-	    idx += ternary_not_equal_int(idx, 0, -1, 3)
-	    app.SetFocus(uiElements[idx])
+    sendMessages.SetChangedFunc(func() {
+	txtLen = sendMessages.GetTextLength()
 
+	if ratio != txtLen / wdt {
+	    ratio = txtLen / wdt
+
+	    if ratio + BASE_HEIGHT < MAX_HEIGHT {
+		messageGrid.SetRows(0, BASE_HEIGHT + ratio)
+	    }
 	}
-
-	return event
     })
 
     sendMessages.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	// trash listener ngl but it will do for now
+	if wdt == 0 {
+	    _,_,wdt,_ = sendMessages.GetRect()
+	    wdt -= 4
+	    return nil
+	}
+
 	if event.Key() == tcell.KeyEnter {
 	    payload := sendMessages.GetText()
 	    sendMessages.SetText("", true)
@@ -212,8 +229,44 @@ func BuildApp() (a *tview.Application, rp *tview.Pages) {
 
     mainGrid = generateMainGrid(contactsGrid, messageGrid, consoleGrid)
 
+    mainGrid.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+
+	switch(event.Key()) {
+	case tcell.KeyCtrlN:
+	    if idx != 3 {
+		idx++
+	    } else {
+		idx = 0
+	    }
+	    app.SetFocus(uiElements[idx])
+
+	case tcell.KeyCtrlP:
+	    if idx != 0 {
+		idx--
+	    } else {
+		idx = 3
+	    }
+	    app.SetFocus(uiElements[idx])
+	}
+
+	return event
+    })
+
     rootPrimitive.AddPage("loginPage", loginGrid, true, true).
     AddPage("mainPage", mainGrid, true, false)
+
+    // This kind of works, needs some fixing and some code refactor
+    test := &ScreenSize{0, 0}
+
+    app.SetAfterDrawFunc(func(screen tcell.Screen) {
+	newx, newy := screen.Size()
+	if test.width != newx {
+	    test.width = newx
+	    test.height = newy
+	    _,_,wdt,_ = sendMessages.Box.GetRect()
+	    wdt -= 4
+	}
+    })
 
     return app, rootPrimitive
 }
